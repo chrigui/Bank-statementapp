@@ -24,20 +24,6 @@ def load_bank_statement(file_path):
         raise ValueError("Failed to automatically detect the start row of the data.")
 
 
-def load_sample_data():
-    # Here you would define your sample data
-    # For the sake of example, I'm generating a simple DataFrame
-    # Replace this with your actual sample data
-    data = {
-        'Date': pd.date_range(start='1/1/2022', periods=10, freq='M'),
-        'Transaction ID': [f'TID{100+i}' for i in range(10)],
-        'Details': ['Sample Data' for _ in range(10)],
-        'Withdrawal Amount ($)': [100, 200, np.nan, 150, np.nan, 300, 250, np.nan, 400, 100],
-        'Deposited Amount ($)': [np.nan, np.nan, 500, np.nan, 1000, np.nan, np.nan, 200, np.nan, np.nan]
-    }
-    sample_df = pd.DataFrame(data)
-    return sample_df
-
 
 # Streamlit application starts here
 st.title('Visualize Your Bank Statement')
@@ -93,8 +79,16 @@ if uploaded_file is not None:
                     st.metric(label="Number of Days", value=f" {days}")
         for col in numeric_columns:
             df[f'Cumulative {col}'] = df[col].cumsum()
-        
+
         df_plot = df.set_index('Date')
+        cheque_003_df = df[df['Detail'] == 'Cheque 000234']
+
+        # Calculate the overall average 'Deposit' for 'cheaque 003'
+        if not cheque_003_df.empty:
+            overall_average_salary = cheque_003_df['Deposited Amount'].mean().round()
+            st.metric(label="Monthly Income", value=f"${overall_average_salary}")
+        else:
+            st.write("No data found for salary")
 
         # Allow user to select which cumulative column to visualize
         selected_col = st.selectbox('Select a variable to inspect its trend:', ['Please Select'] + list(numeric_columns))
@@ -282,12 +276,3 @@ if uploaded_file is not None:
                 st.plotly_chart(fig)
         else:
             st.write("Please select at least one numeric column.")
-
-
-hide_streamlit_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
